@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "target": "es2018",
+    "module": "esnext"
+  },
+  "exclude": ["pkg/**"]
+}
