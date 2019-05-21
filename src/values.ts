@@ -53,5 +53,5 @@ export const num = (value: number): NumValue => ({ type: "num", value });
 
 export const native = (func: NativeFunc): FuncValue => ({
   type: "func",
-  func
+  func,
 });

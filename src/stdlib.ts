@@ -122,5 +122,5 @@ export const stdlib = {
   "+": genArithmetic("+", (a, b) => a + b),
   "-": genArithmetic("-", (a, b) => a - b),
   "*": genArithmetic("*", (a, b) => a * b),
-  "/": genArithmetic("/", (a, b) => a / b)
+  "/": genArithmetic("/", (a, b) => a / b),
 };

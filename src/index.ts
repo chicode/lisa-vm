@@ -48,7 +48,7 @@ function callFunction(func: FuncValue, loc: any, args: [Value, any][]): Value {
   }
   const {
     scope,
-    func: { body, params }
+    func: { body, params },
   } = func.func;
   if (args.length < params.length)
     throw new LisaError(`Too few args to '${name}'`, loc);
@@ -58,7 +58,7 @@ function callFunction(func: FuncValue, loc: any, args: [Value, any][]): Value {
   params.forEach((paramName, i) => {
     funcScope.vars[paramName] = {
       type: "param",
-      value: args[i][0]
+      value: args[i][0],
     };
   });
   return body.reduce((_, expr) => evalExpression(funcScope, expr), none());
@@ -78,12 +78,12 @@ export const funcToJs = (func: FuncValue): JsFunc => (...args) =>
           if (!val)
             throw new Error(
               `Arg ${i} passed to function '${name}' from JS cannot be ` +
-                `transformed into a Lisa value`
+                `transformed into a Lisa value`,
             );
           return [val, null];
-        }
-      )
-    )
+        },
+      ),
+    ),
   );
 
 export function evalExpression(scope: Scope, expr: ast.Expression): Value {
@@ -91,19 +91,19 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
     case "strLit":
       return {
         type: "str",
-        value: expr.value
+        value: expr.value,
       };
     case "numLit":
       return {
         type: "num",
-        value: expr.value
+        value: expr.value,
       };
     case "if":
       const cond = evalExpression(scope, expr.cond);
       if (cond.type !== "bool")
         throw LisaError.fromNode(
           expr.cond,
-          "If condition must be a bool value"
+          "If condition must be a bool value",
         );
       return expr.cond
         ? evalExpression(scope, expr.body)
@@ -116,38 +116,38 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
       else
         throw LisaError.fromNode(
           expr,
-          `Variable '${expr.var.name}' is not defined.`
+          `Variable '${expr.var.name}' is not defined.`,
         );
     case "setVar":
       const v = scope.getVar(expr.var.name);
       if (!v)
         throw LisaError.fromNode(
           expr.var,
-          `Variable '${expr.var.name}' not declared before setting it`
+          `Variable '${expr.var.name}' not declared before setting it`,
         );
       if (v.type === "const")
         throw LisaError.fromNode(
           expr.var,
-          `Constant '${expr.var.name}' cannot be set`
+          `Constant '${expr.var.name}' cannot be set`,
         );
       if (v.type === "param")
         throw LisaError.fromNode(
           expr.var,
-          `You cannot change the value of param '${expr.var.name}'`
+          `You cannot change the value of param '${expr.var.name}'`,
         );
       if (v.type === "definedFunc")
         throw LisaError.fromNode(
           expr.var,
-          `You cannot change the value of function '${expr.var.name}`
+          `You cannot change the value of function '${expr.var.name}`,
         );
       if (v.type === "builtinFunc")
         throw LisaError.fromNode(
           expr.var,
-          `You cannot set the value of builtin function '${expr.var.name}'`
+          `You cannot set the value of builtin function '${expr.var.name}'`,
         );
       scope.setVar(expr.var.name, {
         type: "var",
-        value: evalExpression(scope, expr)
+        value: evalExpression(scope, expr),
       });
       return none();
     case "funcCall":
@@ -155,7 +155,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
       if (!funcVar)
         throw LisaError.fromNode(
           expr.func,
-          `Function '${expr.func.name}' not available`
+          `Function '${expr.func.name}' not available`,
         );
       if (funcVar.value.type !== "func")
         throw new Error(`Attempted to call non-function '${expr.func.name}'`);
@@ -163,21 +163,21 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         funcVar.value,
         expr.location,
         expr.args.map(
-          (arg): [Value, any] => [evalExpression(scope, arg), arg.location]
-        )
+          (arg): [Value, any] => [evalExpression(scope, arg), arg.location],
+        ),
       );
   }
 }
 
 export function evalProgram(
   program: ast.Program,
-  funcs: { [k: string]: NativeFunc } = {}
+  funcs: { [k: string]: NativeFunc } = {},
 ): Scope {
   const topScope = new Scope();
   for (const [name, value] of Object.entries(stdlib)) {
     topScope.vars[name] = {
       type: "builtinFunc",
-      value
+      value,
     };
   }
   for (const [name, func] of Object.entries(funcs)) {
@@ -185,8 +185,8 @@ export function evalProgram(
       type: "builtinFunc",
       value: {
         type: "func",
-        func
-      }
+        func,
+      },
     };
   }
   const programScope = new Scope(topScope);
@@ -197,15 +197,15 @@ export function evalProgram(
         type: "func",
         func: {
           scope: programScope,
-          func
-        }
-      }
+          func,
+        },
+      },
     };
   }
   for (const [name, varDecl] of Object.entries(program.vars)) {
     programScope.vars[name] = {
       type: varDecl.type,
-      value: evalExpression(programScope, varDecl.init)
+      value: evalExpression(programScope, varDecl.init),
     };
   }
   return programScope;
@@ -232,12 +232,12 @@ function jsToValue(value: unknown): Value | null {
     case "number":
       return {
         type: "num",
-        value
+        value,
       };
     case "string":
       return {
         type: "str",
-        value
+        value,
       };
     default:
       if (Array.isArray(value)) {
@@ -245,7 +245,7 @@ function jsToValue(value: unknown): Value | null {
         if (list.some(elem => elem === null)) return null;
         return {
           type: "list",
-          value: list as Value[]
+          value: list as Value[],
         };
       }
       return null;
