@@ -1,10 +1,12 @@
+import * as ast from "./ast";
+import { Scope } from "./index";
+
 export type Value =
   | StrValue
   | NumValue
   | BoolValue
   | ListValue
-  | JsFuncValue
-  | NativeFuncValue
+  | FuncValue
   | NoneValue;
 
 export interface StrValue {
@@ -27,30 +29,27 @@ export interface ListValue {
   value: Value[];
 }
 
-export type JsPrimitive = number | string | boolean | null | any[] | JsFunc;
-export type JsFunc = (...args: JsPrimitive[]) => JsPrimitive;
-
-export interface JsFuncValue {
-  type: "jsFunc";
-  func: JsFunc;
-}
-
 export type NativeFunc = (loc: any, ...args: [Value, any][]) => Value;
 
-export interface NativeFuncValue {
-  type: "nativeFunc";
-  func: NativeFunc;
+export interface FuncValue {
+  type: "func";
+  func:
+    | NativeFunc
+    | {
+        scope: Scope;
+        func: ast.FuncDecl;
+      };
 }
 
 export interface NoneValue {
   type: "none";
 }
 
-export const isFunction = (
-  value: Value
-): value is NativeFuncValue | JsFuncValue =>
-  value.type === "nativeFunc" || value.type === "jsFunc";
-
 export const none = (): NoneValue => ({ type: "none" });
 
 export const bool = (value: boolean): BoolValue => ({ type: "bool", value });
+
+export const native = (func: NativeFunc): FuncValue => ({
+  type: "func",
+  func
+});

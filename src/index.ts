@@ -1,14 +1,7 @@
 import * as ast from "./ast";
-import {
-  Value,
-  none,
-  NativeFunc,
-  JsFunc,
-  JsPrimitive,
-  isFunction
-} from "./values";
+import { Value, none, NativeFunc, native, FuncValue } from "./values";
 import { LisaError } from "./error";
-import { stdlib, native } from "./stdlib";
+import { stdlib } from "./stdlib";
 import { hasOwnProperty } from "./util";
 
 interface Var {
@@ -40,20 +33,45 @@ export class Scope {
     }
   }
 
-  getFunction(name: string): Function | null {
+  getFunction(name: string): JsFunc | null {
     const v = this.getVar(name);
-    if (!v || !isFunction(v.value)) return null;
-    return v.value.type === "nativeFunc"
-      ? nativeFuncToJs(v.value.func)
-      : v.value.func;
+    if (!v) return null;
+    const func = v.value;
+    if (func.type !== "func") return null;
+    return funcToJs(func);
   }
 }
 
-export const nativeFuncToJs = (func: NativeFunc): JsFunc => (...args) =>
+function callFunction(func: FuncValue, loc: any, args: [Value, any][]): Value {
+  if (typeof func.func === "function") {
+    return func.func.apply(undefined, [loc, ...args]);
+  }
+  const {
+    scope,
+    func: { body, params }
+  } = func.func;
+  if (args.length < params.length)
+    throw new LisaError(`Too few args to '${name}'`, loc);
+  if (args.length > params.length)
+    throw new LisaError(`Too many args to '${name}'`, loc);
+  params.forEach((paramName, i) => {
+    scope.vars[paramName] = {
+      type: "param",
+      value: args[i][0]
+    };
+  });
+  return body.reduce((_, expr) => evalExpression(scope, expr), none());
+}
+
+export type JsPrimitive = number | string | boolean | null | any[] | JsFunc;
+export type JsFunc = (...args: JsPrimitive[]) => JsPrimitive;
+
+export const funcToJs = (func: FuncValue): JsFunc => (...args) =>
   valueToJs(
-    func(
+    callFunction(
+      func,
       null,
-      ...args.map(
+      args.map(
         (arg, i): [Value, any] => {
           const val = jsToValue(arg);
           if (!val)
@@ -138,35 +156,21 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
           expr.func,
           `Function '${expr.func.name}' not available`
         );
-      if (!isFunction(funcVar.value))
+      if (funcVar.value.type !== "func")
         throw new Error(`Attempted to call non-function '${expr.func.name}'`);
-      const func = funcVar.value;
-      if (func.type === "nativeFunc") {
-        return func.func.apply(undefined, [
-          expr.location,
-          ...expr.args.map(
-            (arg): [Value, any] => [evalExpression(scope, arg), arg.location]
-          )
-        ]);
-      }
-      const ret = func.func.apply(
-        undefined,
-        expr.args.map(arg => valueToJs(evalExpression(scope, arg)))
+      return callFunction(
+        funcVar.value,
+        expr.location,
+        expr.args.map(
+          (arg): [Value, any] => [evalExpression(scope, arg), arg.location]
+        )
       );
-      const retValue = jsToValue(ret);
-      if (!retValue)
-        throw new Error(
-          `The return type of injected function '${
-            expr.func.name
-          }' cannot be transformed into a Lisa value`
-        );
-      return retValue;
   }
 }
 
 export function evalProgram(
   program: ast.Program,
-  funcs: { [k: string]: JsFunc } = {}
+  funcs: { [k: string]: NativeFunc } = {}
 ): Scope {
   const topScope = new Scope();
   for (const [name, value] of Object.entries(stdlib)) {
@@ -179,7 +183,7 @@ export function evalProgram(
     topScope.vars[name] = {
       type: "definedFunc",
       value: {
-        type: "jsFunc",
+        type: "func",
         func
       }
     };
@@ -226,10 +230,8 @@ function valueToJs(value: Value): JsPrimitive {
       return null;
     case "list":
       return value.value.map(valueToJs);
-    case "jsFunc":
-      return value.func;
-    case "nativeFunc":
-      return nativeFuncToJs(value.func);
+    case "func":
+      return funcToJs(value);
   }
 }
 

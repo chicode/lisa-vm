@@ -8,15 +8,10 @@ import {
   StrValue,
   NumValue,
   NativeFunc,
-  NativeFuncValue
+  native
 } from "./values";
 import { LisaError } from "./error";
 import { hasOwnProperty } from "./util";
-
-export const native = (func: NativeFunc): NativeFuncValue => ({
-  type: "nativeFunc",
-  func
-});
 
 const notnone = native(
   (loc, val?): BoolValue => {
@@ -48,8 +43,7 @@ export function equals(lhs: Value, rhs: Value): boolean {
         arrL.length === arrR.length &&
         arrL.every((elem, i) => equals(elem, arrR[i]))
       );
-    case "jsFunc":
-    case "nativeFunc":
+    case "func":
       return lhs === rhs;
   }
 }
