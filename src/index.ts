@@ -54,7 +54,7 @@ function callFunction(func: FuncValue, loc: any, args: [Value, any][]): Value {
     throw new LisaError(`Too few args to '${name}'`, loc);
   if (args.length > params.length)
     throw new LisaError(`Too many args to '${name}'`, loc);
-  const funcScope = new Scope(scope)
+  const funcScope = new Scope(scope);
   params.forEach((paramName, i) => {
     funcScope.vars[paramName] = {
       type: "param",
@@ -194,11 +194,11 @@ export function evalProgram(
     programScope.vars[name] = {
       type: "definedFunc",
       value: {
-          type: "func",
-          func: {
-              scope: programScope,
-              func
-          }
+        type: "func",
+        func: {
+          scope: programScope,
+          func
+        }
       }
     };
   }
