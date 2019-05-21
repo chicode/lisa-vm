@@ -184,7 +184,6 @@ export function evalProgram(
       }
     };
   }
-  Object.assign(topScope.vars, stdlib, funcs);
   const programScope = new Scope(topScope);
   for (const [name, { params, body }] of Object.entries(program.funcs)) {
     programScope.vars[name] = {
