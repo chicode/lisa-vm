@@ -1,35 +1,39 @@
 {
-	"name": "lisa-vm",
-	"version": "0.1.0",
-	"repository": "https://github.com/chicode/lisa-vm",
-	"author": "coolreader18",
-	"@pika/pack": {
-		"pipeline": [
-			[
-				"@pika/plugin-ts-standard-pkg",
-				{
-					"exclude": [
-						"__tests__/**/*"
-					]
-				}
-			],
-			[
-				"@pika/plugin-build-node"
-			],
-			[
-				"@pika/plugin-build-web"
-			],
-			[
-				"@pika/plugin-build-types"
-			]
-		]
-	},
-	"license": "MIT",
-	"devDependencies": {
-		"@pika/plugin-build-node": "^0.3.16",
-		"@pika/plugin-build-types": "^0.3.16",
-		"@pika/plugin-build-web": "^0.3.16",
-		"@pika/plugin-ts-standard-pkg": "^0.3.16",
-		"typescript": "^3.4.5"
-	}
+  "name": "lisa-vm",
+  "version": "0.1.0",
+  "repository": "https://github.com/chicode/lisa-vm",
+  "author": "coolreader18",
+  "scripts": {
+    "build": "pack build"
+  },
+  "devDependencies": {
+    "@pika/pack": "^0.3.7",
+    "@pika/plugin-build-node": "^0.3.16",
+    "@pika/plugin-build-types": "^0.3.16",
+    "@pika/plugin-build-web": "^0.3.16",
+    "@pika/plugin-ts-standard-pkg": "^0.3.16",
+    "typescript": "^3.4.5"
+  },
+  "@pika/pack": {
+    "pipeline": [
+      [
+        "@pika/plugin-ts-standard-pkg",
+        {
+          "exclude": [
+            "__tests__/**/*"
+          ]
+        }
+      ],
+      [
+        "@pika/plugin-build-node"
+      ],
+      [
+        "@pika/plugin-build-web"
+      ],
+      [
+        "@pika/plugin-build-types"
+      ]
+    ]
+  },
+  "license": "MIT"
 }

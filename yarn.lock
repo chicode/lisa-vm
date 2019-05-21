@@ -632,7 +632,7 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
-"@pika/pack@^0.3.6":
+"@pika/pack@^0.3.6", "@pika/pack@^0.3.7":
   version "0.3.7"
   resolved "https://registry.yarnpkg.com/@pika/pack/-/pack-0.3.7.tgz#fa093b4b075947c8c1d1a72e659522e70966c68e"
   integrity sha512-YoY5eRji4ABupF0SNyeRPFaCZ1VPYTI7ytorgSnphstqup9krBFe41EtEVHXD7VQkINlXKXgJUfTS41spaL2vA==
