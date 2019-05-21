@@ -8,7 +8,8 @@ import {
   StrValue,
   NumValue,
   NativeFunc,
-  native
+  native,
+  FuncValue
 } from "./values";
 import { LisaError } from "./error";
 import { hasOwnProperty } from "./util";
@@ -57,14 +58,14 @@ const eq = native(
   }
 );
 
-const genIsType = (type: Value["type"]): NativeFunc => (
+const genIsType = (type: Value["type"]): FuncValue => native((
   loc,
   ...args
 ): BoolValue => {
   if (args.length < 2)
     throw new LisaError(`Expected 2 or more args to '${genIsType}?'`, loc);
   return bool(args.every(arg => arg[0].type === type));
-};
+});
 
 export const stdlib = {
   notnone,
