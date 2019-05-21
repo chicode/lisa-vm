@@ -190,9 +190,9 @@ export function evalProgram(
       type: "definedFunc",
       value: native((loc, ...args) => {
         const funcScope = new Scope(programScope);
-        if (params.length < args.length)
+        if (args.length < params.length)
           throw new LisaError(`Too few args to '${name}'`, loc);
-        if (params.length > args.length)
+        if (args.length > params.length)
           throw new LisaError(`Too many args to '${name}'`, loc);
         params.forEach((paramName, i) => {
           funcScope.vars[paramName] = {
