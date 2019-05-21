@@ -6,21 +6,17 @@ import {
   NoneValue,
   ListValue,
   StrValue,
-  NumValue
+  NumValue,
+  NativeFunc,
+  NativeFuncValue
 } from "./values";
 import { LisaError } from "./error";
 import { hasOwnProperty } from "./util";
 
-type LocatedValue = [Value, any];
-export type NativeFunction = (loc: any, ...args: LocatedValue[]) => Value;
-
-export const isNativeFunc = (func: Function): func is NativeFunction =>
-  hasOwnProperty(func, "__nativelisa");
-
-export function native(func: NativeFunction) {
-  Object.defineProperty(func, "__nativelisa", {});
-  return func;
-}
+export const native = (func: NativeFunc): NativeFuncValue => ({
+  type: "nativeFunc",
+  func
+});
 
 const notnone = native(
   (loc, val?): BoolValue => {
@@ -52,6 +48,9 @@ export function equals(lhs: Value, rhs: Value): boolean {
         arrL.length === arrR.length &&
         arrL.every((elem, i) => equals(elem, arrR[i]))
       );
+    case "jsFunc":
+    case "nativeFunc":
+      return lhs === rhs;
   }
 }
 
