@@ -1,10 +1,8 @@
 import * as ast from "./ast";
 import { Value, none } from "./values";
 import { LisaError } from "./error";
-import { stdlib, native } from "./stdlib";
-
-const hasOwnProperty = (obj: Object, v: string | number | symbol): boolean =>
-  Object.prototype.hasOwnProperty.call(obj, v);
+import { stdlib, native, isNativeFunc } from "./stdlib";
+import { hasOwnProperty } from "./util";
 
 interface Var {
   type: "var" | "const" | "param";
@@ -48,6 +46,28 @@ export class Scope {
       hasOwnProperty(this.funcs, name) ||
       (this.parent ? this.parent.hasFunc(name) : false)
     );
+  }
+
+  getFunction(name: string): Function | null {
+    const func = this.getFunc(name);
+    if (!func) return null;
+    return isNativeFunc(func)
+      ? (...args: any[]) =>
+          func(
+            null,
+            ...args.map(
+              (arg, i): [Value, any] => {
+                const val = jsToValue(arg);
+                if (!val)
+                  throw new Error(
+                    `Arg ${i} passed to function '${name}' from JS cannot be ` +
+                      `transformed into a Lisa value`
+                  );
+                return [val, null];
+              }
+            )
+          )
+      : func;
   }
 }
 
@@ -112,10 +132,12 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
           expr.func,
           `Function '${expr.func.name}' not available`
         );
-      if (hasOwnProperty(func, "__nativelisa")) {
+      if (isNativeFunc(func)) {
         return func(
           expr.location,
-          ...expr.args.map(arg => [evalExpression(scope, arg), arg.location])
+          ...expr.args.map(
+            (arg): [Value, any] => [evalExpression(scope, arg), arg.location]
+          )
         );
       }
       const ret = func.apply(

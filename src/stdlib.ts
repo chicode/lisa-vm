@@ -9,16 +9,18 @@ import {
   NumValue
 } from "./values";
 import { LisaError } from "./error";
-import { LocatedNode } from "./ast";
+import { hasOwnProperty } from "./util";
 
-type NativeFunction = (loc: LocatedNode, ...args: LocatedValue[]) => Value;
+type LocatedValue = [Value, any];
+export type NativeFunction = (loc: any, ...args: LocatedValue[]) => Value;
+
+export const isNativeFunc = (func: Function): func is NativeFunction =>
+  hasOwnProperty(func, "__nativelisa");
 
 export function native(func: NativeFunction) {
   Object.defineProperty(func, "__nativelisa", {});
   return func;
 }
-
-type LocatedValue = [Value, LocatedNode];
 
 const notnone = native(
   (loc, val?): BoolValue => {
