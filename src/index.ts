@@ -1,7 +1,6 @@
 import * as ast from "./ast";
 import { Value, none } from "./values";
 import { LisaError } from "./error";
-import { pureLocation } from "./util";
 import { stdlib, native } from "./stdlib";
 
 const hasOwnProperty = (obj: Object, v: string | number | symbol): boolean =>
@@ -115,11 +114,8 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         );
       if (hasOwnProperty(func, "__nativelisa")) {
         return func(
-          pureLocation(expr),
-          ...expr.args.map(arg => [
-            evalExpression(scope, arg),
-            pureLocation(arg)
-          ])
+          expr.location,
+          ...expr.args.map(arg => [evalExpression(scope, arg), arg.location])
         );
       }
       const ret = func.apply(

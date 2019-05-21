@@ -1,8 +1,5 @@
 export interface LocatedNode {
-  startRow: number;
-  startCol: number;
-  endRow: number;
-  endCol: number;
+  location: any;
 }
 
 export interface Program {
