@@ -46,6 +46,11 @@ export interface NoneValue {
   type: "none";
 }
 
+export const isFunction = (
+  value: Value
+): value is NativeFuncValue | JsFuncValue =>
+  value.type === "nativeFunc" || value.type === "jsFunc";
+
 export const none = (): NoneValue => ({ type: "none" });
 
 export const bool = (value: boolean): BoolValue => ({ type: "bool", value });

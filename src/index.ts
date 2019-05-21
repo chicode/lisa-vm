@@ -1,11 +1,18 @@
 import * as ast from "./ast";
-import { Value, none, NativeFunc, JsFunc, JsPrimitive } from "./values";
+import {
+  Value,
+  none,
+  NativeFunc,
+  JsFunc,
+  JsPrimitive,
+  isFunction
+} from "./values";
 import { LisaError } from "./error";
 import { stdlib, native } from "./stdlib";
 import { hasOwnProperty } from "./util";
 
 interface Var {
-  type: "var" | "const" | "param" | "definedFunc";
+  type: "var" | "const" | "param" | "definedFunc" | "builtinFunc";
   value: Value;
 }
 
@@ -35,8 +42,7 @@ export class Scope {
 
   getFunction(name: string): Function | null {
     const v = this.getVar(name);
-    if (!v || !(v.value.type === "jsFunc" || v.value.type === "nativeFunc"))
-      return null;
+    if (!v || !isFunction(v.value)) return null;
     return v.value.type === "nativeFunc"
       ? nativeFuncToJs(v.value.func)
       : v.value.func;
@@ -110,6 +116,16 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
           expr.var,
           `You cannot change the value of param '${expr.var.name}'`
         );
+      if (v.type === "definedFunc")
+        throw LisaError.fromNode(
+          expr.var,
+          `You cannot change the value of function '${expr.var.name}`
+        );
+      if (v.type === "builtinFunc")
+        throw LisaError.fromNode(
+          expr.var,
+          `You cannot set the value of builtin function '${expr.var.name}'`
+        );
       scope.setVar(expr.var.name, {
         type: "var",
         value: evalExpression(scope, expr)
@@ -122,11 +138,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
           expr.func,
           `Function '${expr.func.name}' not available`
         );
-      if (
-        !(
-          funcVar.value.type === "jsFunc" || funcVar.value.type === "nativeFunc"
-        )
-      )
+      if (!isFunction(funcVar.value))
         throw new Error(`Attempted to call non-function '${expr.func.name}'`);
       const func = funcVar.value;
       if (func.type === "nativeFunc") {
@@ -173,12 +185,12 @@ export function evalProgram(
     };
   }
   Object.assign(topScope.vars, stdlib, funcs);
-  const functionsScope = new Scope(topScope);
+  const programScope = new Scope(topScope);
   for (const [name, { params, body }] of Object.entries(program.funcs)) {
-    functionsScope.vars[name] = {
+    programScope.vars[name] = {
       type: "definedFunc",
       value: native((loc, ...args) => {
-        const funcScope = new Scope(functionsScope);
+        const funcScope = new Scope(programScope);
         if (params.length < args.length)
           throw new LisaError(`Too few args to '${name}'`, loc);
         if (params.length > args.length)
@@ -196,14 +208,13 @@ export function evalProgram(
       })
     };
   }
-  const varScope = new Scope(functionsScope)
   for (const [name, varDecl] of Object.entries(program.vars)) {
-    varScope.vars[name] = {
+    programScope.vars[name] = {
       type: varDecl.type,
-      value: evalExpression(varScope, varDecl.init)
+      value: evalExpression(programScope, varDecl.init)
     };
   }
-  return varScope;
+  return programScope;
 }
 
 function valueToJs(value: Value): JsPrimitive {
