@@ -57,8 +57,23 @@ const eq = native(
   }
 );
 
+const genIsType = (type: Value["type"]): NativeFunc => (
+  loc,
+  ...args
+): BoolValue => {
+  if (args.length < 2)
+    throw new LisaError(`Expected 2 or more args to '${genIsType}?'`, loc);
+  return bool(args.every(arg => arg[0].type === type));
+};
+
 export const stdlib = {
   notnone,
   log,
-  "=": eq
+  "=": eq,
+  "str?": genIsType("str"),
+  "num?": genIsType("num"),
+  "bool?": genIsType("bool"),
+  "func?": genIsType("func"),
+  "list?": genIsType("list"),
+  "none?": genIsType("none")
 };
