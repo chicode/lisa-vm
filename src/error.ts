@@ -1,6 +1,8 @@
 import * as ast from "./ast";
 
 export class LisaError extends Error {
+  name = "LisaError";
+
   constructor(msg: string, public location: any) {
     super(msg);
   }

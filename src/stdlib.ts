@@ -61,8 +61,8 @@ const eq = native(
 const genIsType = (type: Value["type"]): FuncValue =>
   native(
     (loc, ...args): BoolValue => {
-      if (args.length < 2)
-        throw new LisaError(`Expected 2 or more args to '${genIsType}?'`, loc);
+      if (args.length < 1)
+        throw new LisaError(`Expected at least 1 argument to '${type}?'`, loc);
       return bool(args.every(arg => arg[0].type === type));
     }
   );
