@@ -54,13 +54,14 @@ function callFunction(func: FuncValue, loc: any, args: [Value, any][]): Value {
     throw new LisaError(`Too few args to '${name}'`, loc);
   if (args.length > params.length)
     throw new LisaError(`Too many args to '${name}'`, loc);
+  const funcScope = new Scope(scope)
   params.forEach((paramName, i) => {
-    scope.vars[paramName] = {
+    funcScope.vars[paramName] = {
       type: "param",
       value: args[i][0]
     };
   });
-  return body.reduce((_, expr) => evalExpression(scope, expr), none());
+  return body.reduce((_, expr) => evalExpression(funcScope, expr), none());
 }
 
 export type JsPrimitive = number | string | boolean | null | any[] | JsFunc;
@@ -175,13 +176,13 @@ export function evalProgram(
   const topScope = new Scope();
   for (const [name, value] of Object.entries(stdlib)) {
     topScope.vars[name] = {
-      type: "definedFunc",
+      type: "builtinFunc",
       value
     };
   }
   for (const [name, func] of Object.entries(funcs)) {
     topScope.vars[name] = {
-      type: "definedFunc",
+      type: "builtinFunc",
       value: {
         type: "func",
         func
@@ -189,26 +190,16 @@ export function evalProgram(
     };
   }
   const programScope = new Scope(topScope);
-  for (const [name, { params, body }] of Object.entries(program.funcs)) {
+  for (const [name, func] of Object.entries(program.funcs)) {
     programScope.vars[name] = {
       type: "definedFunc",
-      value: native((loc, ...args) => {
-        const funcScope = new Scope(programScope);
-        if (args.length < params.length)
-          throw new LisaError(`Too few args to '${name}'`, loc);
-        if (args.length > params.length)
-          throw new LisaError(`Too many args to '${name}'`, loc);
-        params.forEach((paramName, i) => {
-          funcScope.vars[paramName] = {
-            type: "param",
-            value: args[i][0]
-          };
-        });
-        return body.reduce(
-          (_, expr) => evalExpression(funcScope, expr),
-          none()
-        );
-      })
+      value: {
+          type: "func",
+          func: {
+              scope: programScope,
+              func
+          }
+      }
     };
   }
   for (const [name, varDecl] of Object.entries(program.vars)) {
