@@ -40,6 +40,16 @@ export class Scope {
     if (func.type !== "func") return null;
     return funcToJs(func);
   }
+
+  injectFunc(name: string, func: NativeFunc) {
+    this.vars[name] = {
+      type: "builtinFunc",
+      value: {
+        type: "func",
+        func,
+      },
+    };
+  }
 }
 
 function callFunction(func: FuncValue, loc: any, args: [Value, any][]): Value {
@@ -180,13 +190,7 @@ export function initProgram(funcs: { [k: string]: NativeFunc } = {}): Scope {
     };
   }
   for (const [name, func] of Object.entries(funcs)) {
-    topScope.vars[name] = {
-      type: "builtinFunc",
-      value: {
-        type: "func",
-        func,
-      },
-    };
+    topScope.injectFunc(name, func);
   }
   const programScope = new Scope(topScope);
   return programScope;
