@@ -29,6 +29,7 @@ export interface ListValue {
   value: Value[];
 }
 
+export type LocatedValue = [Value, any];
 export type NativeFunc = (loc: any, ...args: [Value, any][]) => Value;
 
 export interface FuncValue {
@@ -50,6 +51,8 @@ export const none = (): NoneValue => ({ type: "none" });
 export const bool = (value: boolean): BoolValue => ({ type: "bool", value });
 
 export const num = (value: number): NumValue => ({ type: "num", value });
+
+export const str = (value: string): StrValue => ({ type: "str", value });
 
 export const list = (value: Value[]): ListValue => ({ type: "list", value });
 
