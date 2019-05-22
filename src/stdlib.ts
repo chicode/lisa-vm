@@ -14,13 +14,6 @@ import {
 } from "./values";
 import { LisaError } from "./error";
 
-const notnone = native(
-  (loc, val?): BoolValue => {
-    if (!val) throw new LisaError("Missing first arg to notnone", loc);
-    return bool(val[0].type !== "none");
-  },
-);
-
 const log = native(
   (_loc, ...args): NoneValue => {
     console.log(...args.map(arg => arg[0]));
@@ -124,7 +117,6 @@ const len = native((loc, ...args) => {
 });
 
 export const stdlib = {
-  notnone,
   log,
   "=": eq,
   "str?": genIsType("str"),
