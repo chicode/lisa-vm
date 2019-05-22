@@ -107,6 +107,22 @@ const genArithmetic = (
     },
   );
 
+const len = native((loc, ...args) => {
+  if (args.length < 1)
+    throw new LisaError("'len' requires at least one argument", loc);
+  return num(
+    args.reduce((acc, cur) => {
+      switch (cur[0].type) {
+        case "list":
+        case "str":
+          return acc + cur[0].value.length;
+        default:
+          throw new LisaError("'len' only accepts lists and strs", cur[1]);
+      }
+    }, 0),
+  );
+});
+
 export const stdlib = {
   notnone,
   log,
@@ -125,4 +141,5 @@ export const stdlib = {
   "-": genArithmetic("-", (a, b) => a - b),
   "*": genArithmetic("*", (a, b) => a * b),
   "/": genArithmetic("/", (a, b) => a / b),
+  len,
 };
