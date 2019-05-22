@@ -105,7 +105,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
           expr.cond,
           "If condition must be a bool value",
         );
-      return expr.cond
+      return cond.value
         ? evalExpression(scope, expr.body)
         : expr.final
         ? evalExpression(scope, expr.final)
@@ -169,10 +169,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
   }
 }
 
-export function evalProgram(
-  program: ast.Program,
-  funcs: { [k: string]: NativeFunc } = {},
-): Scope {
+export function initProgram(funcs: { [k: string]: NativeFunc } = {}): Scope {
   const topScope = new Scope();
   for (const [name, value] of Object.entries(stdlib)) {
     topScope.vars[name] = {
@@ -190,24 +187,36 @@ export function evalProgram(
     };
   }
   const programScope = new Scope(topScope);
+  return programScope;
+}
+
+export function evalProgramInScope(program: ast.Program, scope: Scope) {
   for (const [name, func] of Object.entries(program.funcs)) {
-    programScope.vars[name] = {
+    scope.vars[name] = {
       type: "definedFunc",
       value: {
         type: "func",
         func: {
-          scope: programScope,
+          scope: scope,
           func,
         },
       },
     };
   }
   for (const [name, varDecl] of Object.entries(program.vars)) {
-    programScope.vars[name] = {
+    scope.vars[name] = {
       type: varDecl.type,
-      value: evalExpression(programScope, varDecl.init),
+      value: evalExpression(scope, varDecl.init),
     };
   }
+}
+
+export function evalProgram(
+  program: ast.Program,
+  funcs?: { [k: string]: NativeFunc },
+): Scope {
+  const programScope = initProgram(funcs);
+  evalProgramInScope(program, programScope);
   return programScope;
 }
 

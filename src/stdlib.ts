@@ -95,12 +95,14 @@ const genArithmetic = (
     (loc, ...args): NumValue => {
       if (args.length < 2)
         throw new LisaError(`Expected at least 2 arguments to '${name}'`, loc);
+      if (args[0][0].type !== "num")
+        throw new LisaError(`'${name}' only accepts numbers`, args[0][1]);
       return num(
-        args.reduce((acc, cur) => {
+        args.slice(1).reduce((acc, cur) => {
           if (cur[0].type !== "num")
             throw new LisaError(`'${name}' only accepts numbers`, cur[1]);
           return pred(acc, cur[0].value);
-        }, 0),
+        }, args[0][0].value),
       );
     },
   );
