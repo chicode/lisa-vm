@@ -29,7 +29,8 @@ export type Expression =
   | FuncCallExpression
   | IfExpression
   | StrLitExpression
-  | NumLitExpression;
+  | NumLitExpression
+  | ListExpression;
 
 export interface SetVarExpression extends LocatedNode {
   type: "setVar";

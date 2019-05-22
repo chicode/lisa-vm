@@ -1,5 +1,5 @@
 import * as ast from "./ast";
-import { Value, none, NativeFunc, native, FuncValue } from "./values";
+import { Value, none, NativeFunc, native, FuncValue, list } from "./values";
 import { LisaError } from "./error";
 import { stdlib } from "./stdlib";
 import { hasOwnProperty } from "./util";
@@ -110,6 +110,8 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         : expr.final
         ? evalExpression(scope, expr.final)
         : none();
+    case "list":
+      return list(expr.elements.map(elem => evalExpression(scope, elem)));
     case "getVar":
       const val = scope.getVar(expr.var.name);
       if (val) return val.value;
@@ -220,7 +222,7 @@ export function evalProgram(
   return programScope;
 }
 
-function valueToJs(value: Value): JsPrimitive {
+export function valueToJs(value: Value): JsPrimitive {
   switch (value.type) {
     case "bool":
     case "str":

@@ -51,6 +51,8 @@ export const bool = (value: boolean): BoolValue => ({ type: "bool", value });
 
 export const num = (value: number): NumValue => ({ type: "num", value });
 
+export const list = (value: Value[]): ListValue => ({ type: "list", value });
+
 export const native = (func: NativeFunc): FuncValue => ({
   type: "func",
   func,
