@@ -28,6 +28,7 @@ export type Expression =
   | GetVarExpression
   | FuncCallExpression
   | IfExpression
+  | DoExpression
   | StrLitExpression
   | NumLitExpression
   | ListExpression;
@@ -54,6 +55,11 @@ export interface IfExpression extends LocatedNode {
   cond: Expression;
   body: Expression;
   final: Expression | null;
+}
+
+export interface DoExpression extends LocatedNode {
+  type: "do";
+  body: Expression[];
 }
 
 export interface StrLitExpression extends LocatedNode {

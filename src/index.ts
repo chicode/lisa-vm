@@ -120,6 +120,9 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         : expr.final
         ? evalExpression(scope, expr.final)
         : none();
+    case "do":
+      const doScope = new Scope(scope);
+      return expr.body.reduce((_, cur) => evalExpression(doScope, cur), none());
     case "list":
       return list(expr.elements.map(elem => evalExpression(scope, elem)));
     case "getVar":
