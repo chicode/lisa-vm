@@ -71,7 +71,7 @@ function callFunction(func: FuncValue, loc: any, args: [Value, any][]): Value {
       value: args[i][0],
     };
   });
-  return body.reduce((_, expr) => evalExpression(funcScope, expr), none());
+  return evalExpressions(funcScope, body);
 }
 
 export type JsPrimitive = number | string | boolean | null | any[] | JsFunc;
@@ -122,7 +122,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         : none();
     case "do":
       const doScope = new Scope(scope);
-      return expr.body.reduce((_, cur) => evalExpression(doScope, cur), none());
+      return evalExpressions(doScope, expr.body);
     case "list":
       return list(expr.elements.map(elem => evalExpression(scope, elem)));
     case "getVar":
@@ -227,11 +227,8 @@ export function initProgram(funcs: { [k: string]: NativeFunc } = {}): Scope {
   return programScope;
 }
 
-export function evalExpressions(program: ast.Expression[], scope: Scope) {
-  for (const expr of program) {
-    evalExpression(scope, expr);
-  }
-}
+export const evalExpressions = (scope: Scope, exprs: ast.Expression[]): Value =>
+  exprs.reduce((_, expr) => evalExpression(scope, expr), none());
 
 export function valueToJs(value: Value): JsPrimitive {
   switch (value.type) {
