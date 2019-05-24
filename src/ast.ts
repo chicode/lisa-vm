@@ -2,16 +2,6 @@ export interface LocatedNode {
   location: any;
 }
 
-export interface Program {
-  vars: {
-    [k: string]: {
-      type: VarDecl;
-      init: Expression;
-    };
-  };
-  funcs: { [k: string]: FuncDecl };
-}
-
 export type VarDecl = "var" | "const";
 
 export interface FuncDecl {
@@ -29,6 +19,9 @@ export type Expression =
   | FuncCallExpression
   | IfExpression
   | DoExpression
+  | FuncExpression
+  | DefVarExpression
+  | DefFuncExpression
   | StrLitExpression
   | NumLitExpression
   | ListExpression;
@@ -60,6 +53,24 @@ export interface IfExpression extends LocatedNode {
 export interface DoExpression extends LocatedNode {
   type: "do";
   body: Expression[];
+}
+
+export interface FuncExpression extends LocatedNode {
+  type: "func";
+  func: FuncDecl;
+}
+
+export interface DefVarExpression extends LocatedNode {
+  type: "defVar";
+  varType: VarDecl;
+  var: Symbol;
+  init: Expression | null;
+}
+
+export interface DefFuncExpression extends LocatedNode {
+  type: "defFunc";
+  name: Symbol;
+  func: FuncDecl;
 }
 
 export interface StrLitExpression extends LocatedNode {

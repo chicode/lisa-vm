@@ -181,6 +181,34 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
           (arg): [Value, any] => [evalExpression(scope, arg), arg.location],
         ),
       );
+    case "func":
+      return {
+        type: "func",
+        func: { scope, func: expr.func },
+      };
+    case "defFunc":
+      if (hasOwnProperty(scope.vars, expr.name.name))
+        throw LisaError.fromNode(
+          expr,
+          `Cannot redefine previously defined function '${expr.name.name}'`,
+        );
+      scope.vars[expr.name.name] = {
+        type: "definedFunc",
+        value: {
+          type: "func",
+          func: {
+            scope: scope,
+            func: expr.func,
+          },
+        },
+      };
+      return none();
+    case "defVar":
+      scope.vars[expr.var.name] = {
+        type: expr.varType,
+        value: expr.init ? evalExpression(scope, expr.init) : none(),
+      };
+      return none();
   }
 }
 
@@ -199,34 +227,10 @@ export function initProgram(funcs: { [k: string]: NativeFunc } = {}): Scope {
   return programScope;
 }
 
-export function evalProgramInScope(program: ast.Program, scope: Scope) {
-  for (const [name, func] of Object.entries(program.funcs)) {
-    scope.vars[name] = {
-      type: "definedFunc",
-      value: {
-        type: "func",
-        func: {
-          scope: scope,
-          func,
-        },
-      },
-    };
+export function evalExpressions(program: ast.Expression[], scope: Scope) {
+  for (const expr of program) {
+    evalExpression(scope, expr);
   }
-  for (const [name, varDecl] of Object.entries(program.vars)) {
-    scope.vars[name] = {
-      type: varDecl.type,
-      value: evalExpression(scope, varDecl.init),
-    };
-  }
-}
-
-export function evalProgram(
-  program: ast.Program,
-  funcs?: { [k: string]: NativeFunc },
-): Scope {
-  const programScope = initProgram(funcs);
-  evalProgramInScope(program, programScope);
-  return programScope;
 }
 
 export function valueToJs(value: Value): JsPrimitive {
