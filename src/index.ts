@@ -162,7 +162,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         );
       scope.setVar(expr.var.name, {
         type: "var",
-        value: evalExpression(scope, expr),
+        value: evalExpression(scope, expr.val),
       });
       return none();
     case "funcCall":
