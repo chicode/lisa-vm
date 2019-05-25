@@ -218,7 +218,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
             expr.cond,
             "Condition to 'while' must be a boolean",
           );
-        if (!cond) return prevVal;
+        if (!cond.value) return prevVal;
         prevVal = evalExpressions(scope, expr.body);
       }
   }
