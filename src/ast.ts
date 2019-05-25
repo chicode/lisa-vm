@@ -19,6 +19,7 @@ export type Expression =
   | FuncCallExpression
   | IfExpression
   | DoExpression
+  | WhileExpression
   | FuncExpression
   | DefVarExpression
   | DefFuncExpression
@@ -52,6 +53,12 @@ export interface IfExpression extends LocatedNode {
 
 export interface DoExpression extends LocatedNode {
   type: "do";
+  body: Expression[];
+}
+
+export interface WhileExpression extends LocatedNode {
+  type: "while";
+  cond: Expression;
   body: Expression[];
 }
 

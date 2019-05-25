@@ -209,6 +209,18 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         value: expr.init ? evalExpression(scope, expr.init) : none(),
       };
       return none();
+    case "while":
+      let prevVal: Value = none();
+      while (true) {
+        const cond = evalExpression(scope, expr.cond);
+        if (cond.type !== "bool")
+          throw LisaError.fromNode(
+            expr.cond,
+            "Condition to 'while' must be a boolean",
+          );
+        if (!cond) return prevVal;
+        prevVal = evalExpressions(scope, expr.body);
+      }
   }
 }
 
