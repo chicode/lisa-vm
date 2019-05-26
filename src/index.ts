@@ -14,7 +14,9 @@ import { LisaError } from "./error";
 import { stdlib } from "./stdlib";
 import { hasOwnProperty } from "./util";
 
-interface Var {
+export { values, LisaError, ast };
+
+export interface Var {
   type: "var" | "const" | "param" | "definedFunc" | "builtinFunc";
   value: Value;
 }
@@ -59,7 +61,11 @@ export class Scope {
   }
 }
 
-function callFunction(func: FuncValue, loc: any, args: [Value, any][]): Value {
+export function callFunction(
+  func: FuncValue,
+  loc: any,
+  args: [Value, any][],
+): Value {
   if (typeof func.func === "function") {
     return func.func.apply(undefined, [loc, ...args]);
   }
@@ -249,7 +255,7 @@ export function valueToJs(value: Value): JsPrimitive {
   }
 }
 
-function jsToValue(value: unknown): Value | null {
+export function jsToValue(value: unknown): Value | null {
   if (value == null) return none;
   switch (typeof value) {
     case "number":
