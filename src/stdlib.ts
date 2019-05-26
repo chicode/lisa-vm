@@ -20,7 +20,7 @@ import { LisaError } from "./error";
 const log = native(
   (_loc, ...args): NoneValue => {
     console.log(...args.map(arg => arg[0]));
-    return none();
+    return none;
   },
 );
 

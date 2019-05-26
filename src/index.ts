@@ -1,5 +1,15 @@
 import * as ast from "./ast";
-import { Value, none, NativeFunc, native, FuncValue, list } from "./values";
+import {
+  Value,
+  none,
+  NativeFunc,
+  FuncValue,
+  list,
+  num,
+  str,
+  lisaFunc,
+} from "./values";
+import * as values from "./values";
 import { LisaError } from "./error";
 import { stdlib } from "./stdlib";
 import { hasOwnProperty } from "./util";
@@ -44,10 +54,7 @@ export class Scope {
   injectFunc(name: string, func: NativeFunc) {
     this.vars[name] = {
       type: "builtinFunc",
-      value: {
-        type: "func",
-        func,
-      },
+      value: values.native(func),
     };
   }
 }
@@ -99,15 +106,9 @@ export const funcToJs = (func: FuncValue): JsFunc => (...args) =>
 export function evalExpression(scope: Scope, expr: ast.Expression): Value {
   switch (expr.type) {
     case "strLit":
-      return {
-        type: "str",
-        value: expr.value,
-      };
+      return str(expr.value);
     case "numLit":
-      return {
-        type: "num",
-        value: expr.value,
-      };
+      return num(expr.value);
     case "if":
       const cond = evalExpression(scope, expr.cond);
       if (cond.type !== "bool")
@@ -119,7 +120,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         ? evalExpression(scope, expr.body)
         : expr.final
         ? evalExpression(scope, expr.final)
-        : none();
+        : none;
     case "do":
       const doScope = new Scope(scope);
       return evalExpressions(doScope, expr.body);
@@ -164,7 +165,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         type: "var",
         value: evalExpression(scope, expr.val),
       });
-      return none();
+      return none;
     case "funcCall":
       const funcVar = scope.getVar(expr.func.name);
       if (!funcVar)
@@ -182,10 +183,7 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         ),
       );
     case "func":
-      return {
-        type: "func",
-        func: { scope, func: expr.func },
-      };
+      return lisaFunc(scope, expr.func);
     case "defFunc":
       if (hasOwnProperty(scope.vars, expr.name.name))
         throw LisaError.fromNode(
@@ -194,23 +192,17 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
         );
       scope.vars[expr.name.name] = {
         type: "definedFunc",
-        value: {
-          type: "func",
-          func: {
-            scope: scope,
-            func: expr.func,
-          },
-        },
+        value: lisaFunc(scope, expr.func),
       };
-      return none();
+      return none;
     case "defVar":
       scope.vars[expr.var.name] = {
         type: expr.varType,
-        value: expr.init ? evalExpression(scope, expr.init) : none(),
+        value: expr.init ? evalExpression(scope, expr.init) : none,
       };
-      return none();
+      return none;
     case "while":
-      let prevVal: Value = none();
+      let prevVal: Value = none;
       while (true) {
         const cond = evalExpression(scope, expr.cond);
         if (cond.type !== "bool")
@@ -240,7 +232,7 @@ export function initProgram(funcs: { [k: string]: NativeFunc } = {}): Scope {
 }
 
 export const evalExpressions = (scope: Scope, exprs: ast.Expression[]): Value =>
-  exprs.reduce((_, expr) => evalExpression(scope, expr), none());
+  exprs.reduce((_, expr) => evalExpression(scope, expr), none);
 
 export function valueToJs(value: Value): JsPrimitive {
   switch (value.type) {
@@ -258,26 +250,17 @@ export function valueToJs(value: Value): JsPrimitive {
 }
 
 function jsToValue(value: unknown): Value | null {
-  if (value == null) return none();
+  if (value == null) return none;
   switch (typeof value) {
     case "number":
-      return {
-        type: "num",
-        value,
-      };
+      return num(value);
     case "string":
-      return {
-        type: "str",
-        value,
-      };
+      return str(value);
     default:
       if (Array.isArray(value)) {
         const list = value.map(jsToValue);
         if (list.some(elem => elem === null)) return null;
-        return {
-          type: "list",
-          value: list as Value[],
-        };
+        return values.list(list as Value[]);
       }
       return null;
   }

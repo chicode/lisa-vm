@@ -10,53 +10,61 @@ export type Value =
   | NoneValue;
 
 export interface StrValue {
-  type: "str";
-  value: string;
+  readonly type: "str";
+  readonly value: string;
 }
 
 export interface NumValue {
-  type: "num";
-  value: number;
+  readonly type: "num";
+  readonly value: number;
 }
 
 export interface BoolValue {
-  type: "bool";
-  value: boolean;
+  readonly type: "bool";
+  readonly value: boolean;
 }
 
 export interface ListValue {
-  type: "list";
-  value: Value[];
+  readonly type: "list";
+  readonly value: Value[];
 }
 
 export type LocatedValue = [Value, any];
 export type NativeFunc = (loc: any, ...args: [Value, any][]) => Value;
 
 export interface FuncValue {
-  type: "func";
-  func:
+  readonly type: "func";
+  readonly func:
     | NativeFunc
     | {
-        scope: Scope;
-        func: ast.FuncDecl;
+        readonly scope: Scope;
+        readonly func: ast.FuncDecl;
       };
 }
 
 export interface NoneValue {
-  type: "none";
+  readonly type: "none";
 }
 
-export const none = (): NoneValue => ({ type: "none" });
+export const none: NoneValue = Object.freeze({ type: "none" });
 
-export const bool = (value: boolean): BoolValue => ({ type: "bool", value });
+export const bool = (value: boolean): BoolValue =>
+  Object.freeze({ type: "bool", value });
 
-export const num = (value: number): NumValue => ({ type: "num", value });
+export const num = (value: number): NumValue =>
+  Object.freeze({ type: "num", value });
 
-export const str = (value: string): StrValue => ({ type: "str", value });
+export const str = (value: string): StrValue =>
+  Object.freeze({ type: "str", value });
 
-export const list = (value: Value[]): ListValue => ({ type: "list", value });
+export const list = (value: Value[]): ListValue =>
+  Object.freeze({ type: "list", value });
 
-export const native = (func: NativeFunc): FuncValue => ({
-  type: "func",
-  func,
-});
+export const native = (func: NativeFunc): FuncValue =>
+  Object.freeze({
+    type: "func",
+    func,
+  });
+
+export const lisaFunc = (scope: Scope, func: ast.FuncDecl): FuncValue =>
+  Object.freeze({ type: "func", func: Object.freeze({ scope, func }) });
