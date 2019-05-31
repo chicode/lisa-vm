@@ -86,9 +86,9 @@ export function callFunction(
       } = func;
 
       if (args.length < params.length)
-        throw new LisaError(`Too few args to '${name}'`, loc);
+        throw new LisaError(`Too few args to function`, loc);
       if (args.length > params.length)
-        throw new LisaError(`Too many args to '${name}'`, loc);
+        throw new LisaError(`Too many args to function`, loc);
 
       const funcScope = new Scope(scope);
       params.forEach((paramName, i) => {
