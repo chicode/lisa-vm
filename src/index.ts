@@ -65,7 +65,11 @@ export function callFunction(
         throw new LisaError("Field accessors take one value only", loc);
       const recordLoc = args[0][1];
       return func.fields.reduce((record, curField, i) => {
-        const err = () => func.fields.slice(0, i).map(field => `.${field}`);
+        const err = () =>
+          func.fields
+            .slice(0, i)
+            .map(field => `.${field}`)
+            .join("");
         if (record.type !== "record")
           throw new LisaError(`Expected ${err()} to be a record`, recordLoc);
         if (!hasOwnProperty(record.value, curField))
