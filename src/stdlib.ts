@@ -115,6 +115,25 @@ const genArithmetic = (
     },
   );
 
+const genLogical = (
+  name: string,
+  init: boolean,
+  op: (lhs: boolean, rhs: boolean) => boolean,
+) =>
+  native(
+    (loc, ...args): BoolValue => {
+      if (args.length < 2)
+        throw new LisaError(`Expected at least 2 arguments to '${name}'`, loc);
+      return bool(
+        args.reduce((acc, cur) => {
+          if (cur[0].type !== "bool")
+            throw new LisaError(`'${name}' only accepts booleans`, cur[1]);
+          return op(acc, cur[0].value);
+        }, init),
+      );
+    },
+  );
+
 const len = native((loc, ...args) => {
   if (args.length < 1)
     throw new LisaError("'len' requires at least one argument", loc);
@@ -148,5 +167,7 @@ export const stdlib = {
   "-": genArithmetic("-", (a, b) => a - b),
   "*": genArithmetic("*", (a, b) => a * b),
   "/": genArithmetic("/", (a, b) => a / b),
+  and: genLogical("and", true, (a, b) => a && b),
+  or: genLogical("or", false, (a, b) => a || b),
   len,
 };
