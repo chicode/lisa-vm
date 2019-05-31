@@ -7,15 +7,16 @@ import {
   ListValue,
   StrValue,
   NumValue,
-  NativeFunc,
   native,
   FuncValue,
   num,
   LocatedValue,
   list,
   str,
+  RecordValue,
 } from "./values";
 import { LisaError } from "./error";
+import { hasOwnProperty } from "./util";
 
 const log = native(
   (_loc, ...args): NoneValue => {
@@ -42,6 +43,17 @@ export function equals(lhs: Value, rhs: Value): boolean {
       );
     case "func":
       return lhs === rhs;
+    case "record":
+      const rhRecord = (rhs as RecordValue).value;
+      if (Object.keys(rhRecord).some(k => !hasOwnProperty(lhs.value, k)))
+        return false;
+      for (const k of Object.keys(lhs.value)) {
+        if (!hasOwnProperty(rhRecord, k) || !equals(rhRecord[k], lhs.value[k]))
+          return false;
+      }
+      return true;
+    case "capsule":
+      return false;
   }
 }
 
@@ -119,37 +131,6 @@ const len = native((loc, ...args) => {
   );
 });
 
-const slice = native((loc, ...args) => {
-  if (args.length < 2 || args.length > 3)
-    throw new LisaError("Expected 2 or 3 arguments to 'slice'", loc);
-  const [target, start, end] = args as [
-    LocatedValue,
-    LocatedValue,
-    LocatedValue?
-  ];
-  if (start[0].type !== "num")
-    throw new LisaError(
-      "'start' argument to 'slice' should be a number",
-      start[1],
-    );
-  if (end && end[0].type !== "num")
-    throw new LisaError("'end' argument to 'slice' should be a number", end[1]);
-  switch (target[0].type) {
-    case "list":
-    case "str":
-      const value = end
-        ? target[0].value.slice(start[0].value, (end[0] as NumValue).value)
-        : (target[0].value.slice(start[0].value) as any);
-
-      return (target[0].type === "list" ? list : str)(value);
-    default:
-      throw new LisaError(
-        "First argument to 'slice' must be a str or list",
-        target[1],
-      );
-  }
-});
-
 export const stdlib = {
   log,
   "=": eq,
@@ -168,5 +149,4 @@ export const stdlib = {
   "*": genArithmetic("*", (a, b) => a * b),
   "/": genArithmetic("/", (a, b) => a / b),
   len,
-  slice,
 };

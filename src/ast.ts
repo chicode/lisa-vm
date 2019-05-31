@@ -2,11 +2,9 @@ export interface LocatedNode {
   location: any;
 }
 
-export type VarDecl = "var" | "const";
-
 export interface FuncDecl {
   params: string[];
-  body: Expression[];
+  body: Expression;
 }
 
 export interface Symbol extends LocatedNode {
@@ -14,80 +12,73 @@ export interface Symbol extends LocatedNode {
 }
 
 export type Expression =
-  | SetVarExpression
-  | GetVarExpression
+  | GetSymbolExpression
   | FuncCallExpression
-  | IfExpression
-  | DoExpression
-  | WhileExpression
+  | CondExpression
   | FuncExpression
-  | DefVarExpression
-  | DefFuncExpression
-  | StrLitExpression
+  | LetExpression
+  | RecordLitExpression
+  | FieldAccessExpression
+  | NoneLitExpression
+  | BoolLitExpression
   | NumLitExpression
+  | StrLitExpression
   | ListExpression;
 
-export interface SetVarExpression extends LocatedNode {
-  type: "setVar";
-  var: Symbol;
-  val: Expression;
-}
-
-export interface GetVarExpression extends LocatedNode {
-  type: "getVar";
-  var: Symbol;
+export interface GetSymbolExpression extends LocatedNode {
+  type: "getSymbol";
+  symbol: Symbol;
 }
 
 export interface FuncCallExpression extends LocatedNode {
   type: "funcCall";
-  func: Symbol;
+  func: Expression;
   args: Expression[];
 }
 
-export interface IfExpression extends LocatedNode {
-  type: "if";
-  cond: Expression;
-  body: Expression;
-  final: Expression | null;
+export interface CondExpression extends LocatedNode {
+  type: "cond";
+  clauses: { cond: Expression; val: Expression }[];
+  otherwise: Expression;
 }
 
-export interface DoExpression extends LocatedNode {
-  type: "do";
-  body: Expression[];
-}
-
-export interface WhileExpression extends LocatedNode {
-  type: "while";
-  cond: Expression;
-  body: Expression[];
-}
-
-export interface FuncExpression extends LocatedNode {
+export interface FuncExpression extends FuncDecl, LocatedNode {
   type: "func";
-  func: FuncDecl;
 }
 
-export interface DefVarExpression extends LocatedNode {
-  type: "defVar";
-  varType: VarDecl;
-  var: Symbol;
-  init: Expression | null;
+export interface LetExpression extends LocatedNode {
+  type: "let";
+  defs: { name: string; val: Expression }[];
+  body: Expression;
 }
 
-export interface DefFuncExpression extends LocatedNode {
-  type: "defFunc";
-  name: Symbol;
-  func: FuncDecl;
+export interface RecordLitExpression extends LocatedNode {
+  type: "recordLit";
+  fields: { [k: string]: Expression };
 }
 
-export interface StrLitExpression extends LocatedNode {
-  type: "strLit";
-  value: string;
+export interface FieldAccessExpression extends LocatedNode {
+  type: "fieldAccess";
+  fieldNames: string[];
+}
+
+export interface NoneLitExpression extends LocatedNode {
+  type: "noneLit";
+}
+
+export interface BoolLitExpression extends LocatedNode {
+  type: "boolLit";
+  value: boolean;
 }
 
 export interface NumLitExpression extends LocatedNode {
   type: "numLit";
   value: number;
+}
+
+export interface StrLitExpression extends LocatedNode {
+  type: "strLit";
+  value: string;
 }
 
 export interface ListExpression extends LocatedNode {
