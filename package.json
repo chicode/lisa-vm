@@ -5,7 +5,8 @@
 	"author": "coolreader18",
 	"scripts": {
 		"build": "pack build",
-		"fmt": "prettier --write src/*"
+		"fmt": "prettier --write src/*",
+		"pub": "pack publish"
 	},
 	"devDependencies": {
 		"@pika/pack": "^0.3.7",
