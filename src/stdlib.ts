@@ -17,6 +17,7 @@ import {
 } from "./values";
 import { LisaError } from "./error";
 import { hasOwnProperty } from "./util";
+import { callFunction } from "./index";
 
 const log = native(
   (_loc, ...args): NoneValue => {
@@ -150,6 +151,32 @@ const len = native((loc, ...args) => {
   );
 });
 
+const map = native(
+  (loc, ...args): ListValue => {
+    if (args.length !== 2)
+      throw new LisaError(
+        "'map' takes exactly 2 arguments, a mapping function and a list.",
+        loc,
+      );
+    const [mapper, target] = args;
+    if (mapper[0].type !== "func")
+      throw new LisaError(
+        "'mapper' argument to 'map' must be a function.",
+        mapper[1],
+      );
+    if (target[0].type !== "list")
+      throw new LisaError(
+        "'target' argument to 'map' must be a list.",
+        target[1],
+      );
+    return list(
+      target[0].value.map(elem =>
+        callFunction(mapper[0] as FuncValue, loc, [[elem, null]]),
+      ),
+    );
+  },
+);
+
 export const stdlib = {
   log,
   "=": eq,
@@ -170,4 +197,5 @@ export const stdlib = {
   and: genLogical("and", true, (a, b) => a && b),
   or: genLogical("or", false, (a, b) => a || b),
   len,
+  map,
 };
