@@ -165,11 +165,13 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
     case "func":
       return lisaFunc(scope, expr);
     case "let":
-      const letScope = new Scope(scope);
+      let letScope = scope;
       for (const def of expr.defs) {
-        letScope.vars[def.name] = evalExpression(letScope, def.val);
+        letScope = letScope.withVar(
+          def.name,
+          evalExpression(letScope, def.val),
+        );
       }
-      letScope.freezeVars();
       return evalExpression(letScope, expr.body);
     case "recordLit":
       return values.record(
