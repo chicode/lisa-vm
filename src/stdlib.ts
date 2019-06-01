@@ -151,31 +151,39 @@ const len = native((loc, ...args) => {
   );
 });
 
-const map = native(
-  (loc, ...args): ListValue => {
-    if (args.length !== 2)
-      throw new LisaError(
-        "'map' takes exactly 2 arguments, a mapping function and a list.",
-        loc,
+const genListMethod = (
+  name: string,
+  func: (
+    arr: readonly Value[],
+    pred: (...args: LocatedValue[]) => LocatedValue,
+  ) => Value[],
+) =>
+  native(
+    (loc, ...args): ListValue => {
+      if (args.length !== 2)
+        throw new LisaError(
+          `'${name}' takes exactly 2 arguments, a function and a list.`,
+          loc,
+        );
+      const [mapper, target] = args;
+      if (mapper[0].type !== "func")
+        throw new LisaError(
+          "'func' argument to 'map' must be a function.",
+          mapper[1],
+        );
+      if (target[0].type !== "list")
+        throw new LisaError(
+          "'target' argument to 'map' must be a list.",
+          target[1],
+        );
+      return list(
+        func(target[0].value, (...args) => [
+          callFunction(mapper[0] as FuncValue, loc, args),
+          mapper[1],
+        ]),
       );
-    const [mapper, target] = args;
-    if (mapper[0].type !== "func")
-      throw new LisaError(
-        "'mapper' argument to 'map' must be a function.",
-        mapper[1],
-      );
-    if (target[0].type !== "list")
-      throw new LisaError(
-        "'target' argument to 'map' must be a list.",
-        target[1],
-      );
-    return list(
-      target[0].value.map(elem =>
-        callFunction(mapper[0] as FuncValue, loc, [[elem, null]]),
-      ),
-    );
-  },
-);
+    },
+  );
 
 export const stdlib = {
   log,
@@ -197,5 +205,32 @@ export const stdlib = {
   and: genLogical("and", true, (a, b) => a && b),
   or: genLogical("or", false, (a, b) => a || b),
   len,
-  map,
+  map: genListMethod("map", (list, pred) =>
+    list.map(elem => pred([elem, null])[0]),
+  ),
+  filter: genListMethod("filter", (list, pred) =>
+    list.filter(elem => {
+      const doFilter = pred([elem, null]);
+      if (doFilter[0].type !== "bool")
+        throw new LisaError(
+          "filtering function must return a boolean",
+          doFilter[1],
+        );
+      return doFilter[0].value;
+    }),
+  ),
+  mapIndex: genListMethod("map", (list, pred) =>
+    list.map((elem, i) => pred([elem, null], [num(i), null])[0]),
+  ),
+  filterIndex: genListMethod("filter", (list, pred) =>
+    list.filter((elem, i) => {
+      const doFilter = pred([elem, null], [num(i), null]);
+      if (doFilter[0].type !== "bool")
+        throw new LisaError(
+          "filtering function must return a boolean",
+          doFilter[1],
+        );
+      return doFilter[0].value;
+    }),
+  ),
 };
