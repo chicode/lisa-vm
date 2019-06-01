@@ -66,10 +66,12 @@ export function callFunction(
       const recordLoc = args[0][1];
       return func.fields.reduce((record, curField, i) => {
         const err = () =>
-          func.fields
-            .slice(0, i)
-            .map(field => `.${field}`)
-            .join("");
+          func.fields.length
+            ? func.fields
+                .slice(0, i)
+                .map(field => `.${field}`)
+                .join("")
+            : "This record";
         if (record.type !== "record")
           throw new LisaError(`Expected ${err()} to be a record`, recordLoc);
         if (!hasOwnProperty(record.value, curField))
