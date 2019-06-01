@@ -185,6 +185,41 @@ const genListMethod = (
     },
   );
 
+const append = native(
+  (loc, ...args): ListValue => {
+    if (args.length < 2)
+      throw new LisaError("'append' takes at least 2 arguments", loc);
+    const [original, ...appendees] = args;
+    if (original[0].type !== "list")
+      throw new LisaError(
+        "'original' argument to 'append' should be a list",
+        original[1],
+      );
+    return list(original[0].value.concat(appendees.map(a => a[0])));
+  },
+);
+
+const get = native(
+  (loc, ...args): Value => {
+    if (args.length !== 2)
+      throw new LisaError("'get' takes exactly 2 arguments", loc);
+    const [idx, list] = args;
+    if (idx[0].type !== "num")
+      throw new LisaError(
+        "'idx' argument to 'get' should be a number",
+        list[1],
+      );
+    if (list[0].type !== "list")
+      throw new LisaError("'list' argument to 'get' should be a list", list[1]);
+    if (!hasOwnProperty(list[0].value, idx[0].value))
+      throw new LisaError(
+        "This index is too big, it's more than length of the list",
+        idx[1],
+      );
+    return list[0].value[idx[0].value];
+  },
+);
+
 export const stdlib = {
   log,
   "=": eq,
@@ -233,4 +268,6 @@ export const stdlib = {
       return doFilter[0].value;
     }),
   ),
+  append,
+  get,
 };
