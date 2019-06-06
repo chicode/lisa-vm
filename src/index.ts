@@ -44,6 +44,14 @@ export class Scope {
     return null;
   }
 
+  topLevelScope(): Scope {
+    let scope: Scope | null = this;
+    while (scope.parent) {
+      scope = scope.parent;
+    }
+    return scope;
+  }
+
   getFunction(name: string): JsFunc | null {
     const func = this.getVar(name);
     if (!func) return null;
@@ -140,6 +148,15 @@ export function evalExpression(scope: Scope, expr: ast.Expression): Value {
           `Symbol '${expr.symbol.name}' is not defined in this scope.`,
         );
       return val;
+    case "getTopLevelSymbol":
+      const topLevelScope = scope.topLevelScope();
+      if (!hasOwnProperty(topLevelScope.vars, expr.symbol.name)) {
+        throw LisaError.fromNode(
+          expr,
+          `Symbol '${expr.symbol.name} is not defined in the top level scope.`,
+        );
+      }
+      return topLevelScope.vars[expr.symbol.name];
     case "funcCall":
       const func = evalExpression(scope, expr.func);
       if (func.type !== "func")

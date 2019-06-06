@@ -13,6 +13,7 @@ export interface Symbol extends LocatedNode {
 
 export type Expression =
   | GetSymbolExpression
+  | GetTopLevelSymbolExpression
   | FuncCallExpression
   | CondExpression
   | FuncExpression
@@ -27,6 +28,11 @@ export type Expression =
 
 export interface GetSymbolExpression extends LocatedNode {
   type: "getSymbol";
+  symbol: Symbol;
+}
+
+export interface GetTopLevelSymbolExpression extends LocatedNode {
+  type: "getTopLevelSymbol";
   symbol: Symbol;
 }
 
